@@ -1,10 +1,10 @@
 import os
 import google.generativeai as genai
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-# Load .env variables
+# Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
@@ -12,9 +12,14 @@ CORS(app)
 
 # Configure Gemini
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
 model = genai.GenerativeModel("gemini-1.5-flash")
 
+# 👉 Home route to render index.html
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+# 👉 Rant API route
 @app.route("/rant", methods=["POST"])
 def rant():
     data = request.get_json()
@@ -22,9 +27,10 @@ def rant():
     tone = data.get("tone", "funny")
 
     prompt = f"""
-You're Rant Room AI — reply to the user’s rant with a {tone} tone.
-Here’s the rant:
+You're Rant Room AI – reply to the user's rant with a {tone} tone.
+Here's the rant:
 {rant}
+
 Respond in 1-2 sentences, add emoji if it fits the mood.
 """
 
@@ -35,5 +41,5 @@ Respond in 1-2 sentences, add emoji if it fits the mood.
         return jsonify({"reply": f"Gemini API error: {str(e)}"}), 500
 
 if __name__ == "__main__":
-    port =int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
